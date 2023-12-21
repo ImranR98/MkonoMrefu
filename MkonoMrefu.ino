@@ -123,7 +123,6 @@ public:
     upperArm->setup();
   }
   void move(int lowerArmAngle, int upperArmAngle) {
-    // Serial.println("(" + String(lowerArmAngle) + ", " + String(upperArmAngle) + ")");
     this->lowerArmAngle = lowerArm->moveToAngle(lowerArmAngle);
     this->upperArmAngle = upperArm->moveToAngle(upperArmAngle);
   }
@@ -146,14 +145,6 @@ public:
       milliseconds);
   }
   void smoothMove(int lowerArmAngleStart, int lowerArmAngleEnd, int upperArmAngleStart, int upperArmAngleEnd, int angleRepetitions = 3, int angleSkips = 0) {
-    // if (enable()) {
-    //   int lowerArmAngleDiff = lowerArmAngleEnd - lowerArmAngleStart;
-    //   int upperArmAngleDiff = upperArmAngleEnd - upperArmAngleStart;
-    //   lowerArmAngleStart = lowerArmAngle;
-    //   lowerArmAngleEnd = lowerArmAngleStart + lowerArmAngleDiff;
-    //   upperArmAngleStart = upperArmAngle;
-    //   upperArmAngleEnd = upperArmAngleStart + upperArmAngleDiff;
-    // }
     if (angleRepetitions < 1) {
       angleRepetitions = 1;
     }
@@ -188,38 +179,6 @@ public:
   }
 };
 
-// class RobotArmHomeAssistantMQTTTrigger {
-// private:
-// public:
-//   String action;
-//   String discoveryTopic;
-//   String discoveryPayload;
-//   std::function<void()> actionFn;
-//   RobotArmHomeAssistantMQTTTrigger(RobotArm* arm, String action, std::function<void()> actionFn) {
-//     this->action = action;
-//     this->actionFn = actionFn;
-//     discoveryTopic = "homeassistant/device_automation/" + arm->deviceId + "/action_" + action + "/config";
-//     discoveryPayload = "{"
-//                        "\"automation_type\": \"trigger\","
-//                        "\"type\": \"action\","
-//                        "\"subtype\": \""
-//                        + action + "\","
-//                                   "\"payload\": \""
-//                        + action + "\","
-//                                   "\"topic\": \""
-//                        + discoveryTopic + "\","
-//                                           "\"device\": {"
-//                                           "\"identifiers\": ["
-//                                           "\""
-//                        + arm->deviceId + "\""
-//                                          "],"
-//                                          "\"name\": \""
-//                        + arm->deviceName + "\""
-//                                            "}"
-//                                            "}";
-//   }
-// };
-
 RobotArm arm(D12, D11);
 Button lowerArmForwardButton(D7, []() {
   arm.move(arm.lowerArmAngle - 1, arm.upperArmAngle);
@@ -234,20 +193,6 @@ Button upperArmReverseButton(D4, []() {
   arm.move(arm.lowerArmAngle, arm.upperArmAngle - 1);
 });
 std::vector<Button> armButtons = { lowerArmForwardButton, lowerArmReverseButton, upperArmForwardButton, upperArmReverseButton };
-
-// RobotArmHomeAssistantMQTTTrigger lowerArmForwardHATrigger(&arm, "lower_arm_forward", []() {
-//   arm.smoothMove(arm.lowerArmAngle, arm.lowerArmAngle - 10, arm.upperArmAngle, arm.upperArmAngle);
-// });
-// RobotArmHomeAssistantMQTTTrigger lowerArmReverseHATrigger(&arm, "lower_arm_reverse", []() {
-//   arm.smoothMove(arm.lowerArmAngle, arm.lowerArmAngle + 10, arm.upperArmAngle, arm.upperArmAngle);
-// });
-// RobotArmHomeAssistantMQTTTrigger upperArmForwardHATrigger(&arm, "upper_arm_forward", []() {
-//   arm.smoothMove(arm.lowerArmAngle, arm.lowerArmAngle, arm.upperArmAngle, arm.upperArmAngle + 10);
-// });
-// RobotArmHomeAssistantMQTTTrigger upperArmReverseHATrigger(&arm, "upper_arm_reverse", []() {
-//   arm.smoothMove(arm.lowerArmAngle, arm.lowerArmAngle, arm.upperArmAngle, arm.upperArmAngle - 10);
-// });
-// std::vector<RobotArmHomeAssistantMQTTTrigger> armHATriggers = { lowerArmForwardHATrigger, lowerArmReverseHATrigger, upperArmForwardHATrigger, upperArmReverseHATrigger };
 
 WiFiClientSecure NET;
 MQTTClient MQTT(1024);
@@ -264,10 +209,6 @@ bool MQTTConnect() {
     NET.setInsecure();
     if (MQTT.connect(arm.deviceName.c_str(), MQTT_USERNAME.c_str(),
                      MQTT_PASSWORD.c_str(), false)) {
-      // MQTT.subscribe(arm.MQTTTriggerTopic);
-      // for (const RobotArmHATrigger& action : armHATriggers) {
-      //   MQTT.publish(action.discoveryTopic, action.discoveryPayload);
-      // }
       MQTT.subscribe(moveMQTTTopic);
       MQTT.subscribe(moveLowerMQTTTopic);
       MQTT.subscribe(moveUpperMQTTTopic);
@@ -291,14 +232,6 @@ int addOrReplaceStrNumtoInt(int num, String str) {
 }
 
 void MQTTMessageReceived(String& topic, String& payload) {
-  // if (topic == arm.MQTTTriggerTopic) {
-  //   for (const RobotArmHATrigger& action : armHATriggers) {
-  //     if (payload.equals(action.action)) {
-  //       action.actionFn();
-  //     }
-  //   }
-  // }
-
   if (topic == moveMQTTTopic) {
     int delimiterPosition = payload.indexOf(',');
     String lower = payload.substring(0, delimiterPosition);
