@@ -1,0 +1,5 @@
+#define WIFI_SSID_STR "My WIFI"
+#define WIFI_PASSWORD_STR "Password123"
+#define MQTT_SERVER_STR "ha.local"
+#define MQTT_USERNAME_STR "user"
+#define MQTT_PASSWORD_STR "Password456"
